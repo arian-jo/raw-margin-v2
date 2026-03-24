@@ -19,7 +19,7 @@ export function useBudget() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
-  const fetchUserData = useCallback(async (userId: string, month: Date = currentMonth) => {
+  const fetchUserData = useCallback(async (userId: string) => {
     try {
       // Profile
       const { data: profileData } = await supabase
@@ -50,22 +50,19 @@ export function useBudget() {
         setSelectedAccountId(accountsData[0].id);
       }
 
-      // Expenses for the displayed month and all previous history
-      const end = format(endOfMonth(month), 'yyyy-MM-dd');
-
+      // Expenses: Fetch ALL history for instant navigation and rollover
       const { data: expensesData } = await supabase
         .from('expenses')
         .select('*')
         .eq('user_id', userId)
-        .lte('date', end)
-        .order('created_at', { ascending: false });
+        .order('date', { ascending: false });
       setExpenses(expensesData || []);
     } catch (err) {
       console.error('Unexpected error:', err);
     } finally {
       setLoading(false);
     }
-  }, [currentMonth, selectedAccountId]);
+  }, [selectedAccountId]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -104,31 +101,23 @@ export function useBudget() {
     const channel = supabase
       .channel('db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => {
-        fetchUserData(user.id, currentMonth);
+        fetchUserData(user.id);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        fetchUserData(user.id, currentMonth);
+        fetchUserData(user.id);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => {
-        fetchUserData(user.id, currentMonth);
+        fetchUserData(user.id);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'accounts' }, () => {
-        fetchUserData(user.id, currentMonth);
+        fetchUserData(user.id);
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, currentMonth, fetchUserData]);
-
-  // Re-fetch when month changes
-  useEffect(() => {
-    if (user) {
-      setLoading(true);
-      fetchUserData(user.id, currentMonth);
-    }
-  }, [currentMonth, user?.id]);
+  }, [user?.id, fetchUserData]);
 
   // Navigation
   const navigateMonth = (direction: 'prev' | 'next' | 'prevYear' | 'nextYear' | 'today') => {
@@ -265,6 +254,6 @@ export function useBudget() {
     deleteCategory,
     addAccount,
     deleteAccount,
-    refresh: () => user && fetchUserData(user.id, currentMonth),
+    refresh: () => user && fetchUserData(user.id),
   };
 }
