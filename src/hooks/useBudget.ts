@@ -50,15 +50,13 @@ export function useBudget() {
         setSelectedAccountId(accountsData[0].id);
       }
 
-      // Expenses for the displayed month
-      const start = format(startOfMonth(month), 'yyyy-MM-dd');
+      // Expenses for the displayed month and all previous history
       const end = format(endOfMonth(month), 'yyyy-MM-dd');
 
       const { data: expensesData } = await supabase
         .from('expenses')
         .select('*')
         .eq('user_id', userId)
-        .gte('date', start)
         .lte('date', end)
         .order('created_at', { ascending: false });
       setExpenses(expensesData || []);
@@ -157,52 +155,86 @@ export function useBudget() {
   // CRUD Operations
   const addExpense = async (expense: Omit<Expense, 'id' | 'user_id' | 'created_at'>) => {
     if (!user) return;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('expenses')
       .insert([{ ...expense, user_id: user.id }])
       .select()
       .single();
     if (error) throw error;
+    if (data) {
+      setExpenses(prev => {
+        const newExpenses = [data, ...prev];
+        return newExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      });
+    }
   };
 
   const deleteExpense = async (id: string) => {
+    // Optimistic update
+    setExpenses(prev => prev.filter(e => e.id !== id));
     const { error } = await supabase.from('expenses').delete().eq('id', id);
-    if (error) throw error;
+    if (error) {
+      if (user) fetchUserData(user.id, currentMonth); // Revert on failure
+      throw error;
+    }
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
     if (!user) return;
+    // Optimistic update
+    setProfile(prev => prev ? { ...prev, ...updates } : null);
     const { error } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', user.id);
-    if (error) throw error;
+    if (error) {
+      fetchUserData(user.id, currentMonth);
+      throw error;
+    }
   };
 
   const addCategory = async (name: string, color: string) => {
     if (!user) return;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('categories')
-      .insert([{ user_id: user.id, name, color }]);
+      .insert([{ user_id: user.id, name, color }])
+      .select()
+      .single();
     if (error) throw error;
+    if (data) {
+      setCategories(prev => [...prev, data]);
+    }
   };
 
   const deleteCategory = async (id: string) => {
+    setCategories(prev => prev.filter(c => c.id !== id));
     const { error } = await supabase.from('categories').delete().eq('id', id);
-    if (error) throw error;
+    if (error) {
+      if (user) fetchUserData(user.id, currentMonth);
+      throw error;
+    }
   };
 
   const addAccount = async (name: string) => {
     if (!user) return;
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('accounts')
-      .insert([{ user_id: user.id, name }]);
+      .insert([{ user_id: user.id, name }])
+      .select()
+      .single();
     if (error) throw error;
+    if (data) {
+      setAccounts(prev => [...prev, data]);
+    }
   };
 
   const deleteAccount = async (id: string) => {
+    setAccounts(prev => prev.filter(a => a.id !== id));
     const { error } = await supabase.from('accounts').delete().eq('id', id);
-    if (error) throw error;
+    if (error) {
+      if (user) fetchUserData(user.id, currentMonth);
+      throw error;
+    }
   };
 
   // Calculate budget for today

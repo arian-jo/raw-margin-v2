@@ -1,9 +1,17 @@
 import {
   startOfMonth, endOfMonth, differenceInDays, parseISO,
   isAfter, isBefore, isSameDay, eachDayOfInterval, isWeekend,
-  subDays, format
+  subDays, format, differenceInCalendarMonths
 } from 'date-fns';
 import { Expense, Profile, BudgetResult, HealthStatus } from '@/types/database';
+
+export function getMonthsActive(profile: Profile, expenses: Expense[], limitDate: Date): number {
+  if (!expenses || expenses.length === 0) return 1;
+  const oldestDateStr = expenses.reduce((oldest, e) => e.date < oldest ? e.date : oldest, expenses[0].date);
+  const oldestDate = parseISO(oldestDateStr);
+  if (isAfter(oldestDate, limitDate)) return 1;
+  return differenceInCalendarMonths(limitDate, oldestDate) + 1;
+}
 
 /**
  * Calcula el factor de peso para un día (weekend    vs weekday).
@@ -27,28 +35,31 @@ export function calculateWeightedDailyBudget(
   const start = startOfMonth(currentDate);
   const end = endOfMonth(currentDate);
 
-  // Filter by account if specified, and only count gastos (not ingresos)
-  const filteredExpenses = (accountId
+  // Filter by account if specified. Treat `ingreso` as negative spending later in the reduce.
+  const filteredExpenses = accountId
     ? expenses.filter(e => e.account_id === accountId)
-    : expenses
-  ).filter(e => e.type !== 'ingreso');
+    : expenses;
 
-  // Gastos realizados ANTES de hoy (en el mes)
+  // Calculamos los meses activos para multiplicar el sueldo base
+  const monthsActive = getMonthsActive(profile, filteredExpenses, currentDate);
+  const totalBase = (I - A) * Math.max(1, monthsActive);
+
+  // Gastos realizados ANTES de hoy (en toda la historia)
   const realizadosAntes = filteredExpenses.filter(e => {
     const d = parseISO(e.date);
-    return isBefore(d, currentDate) && (isSameDay(d, start) || isAfter(d, start));
+    return isBefore(d, currentDate);
   });
-  const sumRealizadosAntes = realizadosAntes.reduce((acc, e) => acc + Number(e.amount), 0);
+  const sumRealizadosAntes = realizadosAntes.reduce((acc, e) => acc + (e.type === 'ingreso' ? -Number(e.amount) : Number(e.amount)), 0);
 
-  // Gastos futuros programados (después de hoy, en el mes)
+  // Gastos futuros programados (solo del mes actual)
   const futurosProgramados = filteredExpenses.filter(e => {
     const d = parseISO(e.date);
     return isAfter(d, currentDate) && (isSameDay(d, end) || isBefore(d, end));
   });
-  const sumFuturos = futurosProgramados.reduce((acc, e) => acc + Number(e.amount), 0);
+  const sumFuturos = futurosProgramados.reduce((acc, e) => acc + (e.type === 'ingreso' ? -Number(e.amount) : Number(e.amount)), 0);
 
   // Disponible para distribuir
-  const disponible = I - A - sumFuturos - sumRealizadosAntes;
+  const disponible = totalBase - sumFuturos - sumRealizadosAntes;
 
   // Días restantes del mes (incluyendo hoy)
   const daysRemaining = differenceInDays(end, currentDate) + 1;
@@ -72,8 +83,8 @@ function getDaySpending(expenses: Expense[], date: Date, accountId?: string | nu
     ? expenses.filter(e => e.account_id === accountId)
     : expenses;
   return filtered
-    .filter(e => isSameDay(parseISO(e.date), date) && e.type !== 'ingreso')
-    .reduce((acc, e) => acc + Number(e.amount), 0);
+    .filter(e => isSameDay(parseISO(e.date), date))
+    .reduce((acc, e) => acc + (e.type === 'ingreso' ? -Number(e.amount) : Number(e.amount)), 0);
 }
 
 /**
@@ -123,15 +134,21 @@ export function calculateAccumulatedMargin(
   accountId?: string | null
 ): number {
   const start = startOfMonth(currentDate);
+  
+  // Si estamos en el primer día del mes, no hay margen acumulado anterior
+  if (isSameDay(currentDate, start)) {
+    return 0;
+  }
+
   const days = eachDayOfInterval({ start, end: subDays(currentDate, 1) });
 
   let accumulated = 0;
   for (const day of days) {
     const budget = calculateWeightedDailyBudget(profile, expenses, day, accountId);
     const spent = getDaySpending(expenses, day, accountId);
-    if (spent > 0) {
-      accumulated += (budget - spent);
-    }
+    
+    // Sumar siempre, incluso si es 0, para que el presupuesto no gastado se refleje en el margen
+    accumulated += (budget - spent);
   }
 
   return accumulated;
@@ -153,37 +170,38 @@ export function calculateProjectedSavings(
   // Promedio diario de últimos 7 días
   const last7Days = Array.from({ length: 7 }, (_, i) => subDays(currentDate, i));
   let totalLast7 = 0;
-  let daysWithData = 0;
 
   for (const day of last7Days) {
-    const spent = getDaySpending(expenses, day, accountId);
-    if (spent > 0) {
-      totalLast7 += spent;
-      daysWithData++;
-    }
+    // We only want to average actual expenses (gastos), ignoring ingresos, for the trend prediction.
+    const filteredForDay = accountId ? expenses.filter(e => e.account_id === accountId) : expenses;
+    const spentOnlyGastos = filteredForDay
+      .filter(e => isSameDay(parseISO(e.date), day) && e.type !== 'ingreso')
+      .reduce((acc, e) => acc + Number(e.amount), 0);
+      
+    totalLast7 += spentOnlyGastos; // Sumamos también los días que gastaste $0
   }
 
-  const avgDaily = daysWithData > 0 ? totalLast7 / daysWithData : 0;
+  // Dividimos estrictamente por 7 (o la cantidad de días del muestreo) para obtener el promedio real de la semana
+  const avgDaily = totalLast7 / last7Days.length;
 
-  // Total gastado en el mes hasta hoy
-  const start = startOfMonth(currentDate);
   const filteredExpenses = accountId
     ? expenses.filter(e => e.account_id === accountId)
     : expenses;
-  const totalSpentMonth = filteredExpenses
-    .filter(e => {
-      const d = parseISO(e.date);
-      return (isSameDay(d, start) || isAfter(d, start)) && (isSameDay(d, currentDate) || isBefore(d, currentDate));
-    })
-    .reduce((acc, e) => acc + Number(e.amount), 0);
 
-  // Gasto futuro programado
+  const monthsActive = getMonthsActive(profile, filteredExpenses, currentDate);
+  const lifetimeIncome = I * Math.max(1, monthsActive);
+
+  // Total gastado en toda la historia hasta hoy (incluyendo hoy)
+  const realizadosHastaHoy = filteredExpenses.filter(e => isBefore(parseISO(e.date), currentDate) || isSameDay(parseISO(e.date), currentDate));
+  const totalSpentHistory = realizadosHastaHoy.reduce((acc, e) => acc + (e.type === 'ingreso' ? -Number(e.amount) : Number(e.amount)), 0);
+
+  // Gasto futuro programado (solo del mes actual)
   const futurosProgramados = filteredExpenses
     .filter(e => isAfter(parseISO(e.date), currentDate) && (isSameDay(parseISO(e.date), end) || isBefore(parseISO(e.date), end)))
-    .reduce((acc, e) => acc + Number(e.amount), 0);
+    .reduce((acc, e) => acc + (e.type === 'ingreso' ? -Number(e.amount) : Number(e.amount)), 0);
 
-  // Proyección: I - total_gastado - (avgDaily * días_restantes) - futuros
-  const projected = I - totalSpentMonth - (avgDaily * daysRemaining) - futurosProgramados;
+  // Proyección: I_histórico - total_gastado_histórico - (avgDaily * días_restantes) - futuros
+  const projected = lifetimeIncome - totalSpentHistory - (avgDaily * daysRemaining) - futurosProgramados;
 
   return projected;
 }

@@ -17,7 +17,7 @@
     --border-light: #e5e7eb;
 
     /* Calendar cell colors */
-    --cell-default-bg: #fff0f0;
+    --cell-default-bg: #ffffff;
     --cell-over-bg: #fce4ec;
     --cell-over-text: #c62828;
     --cell-under-bg: #e8f5e9;
@@ -641,6 +641,13 @@
 
   .cal-cell--under {
     background: var(--cell-under-bg);
+  }
+
+  .cal-cell--income {
+    background: var(--health-green-bg);
+  }
+  .cal-cell--income .cal-day-number {
+    color: var(--health-green);
   }
 
   .cal-day-number {

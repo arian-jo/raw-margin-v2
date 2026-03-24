@@ -1,7 +1,7 @@
 'use client';
 
 import { Expense, Profile } from '@/types/database';
-import { calculateBudget } from '@/lib/calculations';
+import { calculateBudget, getMonthsActive } from '@/lib/calculations';
 import {
   startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday,
   parseISO, isBefore, getDay
@@ -33,12 +33,19 @@ export default function CalendarGrid({
     : expenses;
 
   // Calculate running balance for the month
-  // Start with monthly income, subtract each day's expenses cumulatively
+  // We compute total disposable based on months active up to the start of this month
   const runningBalances: Map<string, number> = new Map();
-  let cumulativeSpent = 0;
   const monthlyIncome = profile?.monthly_income || 0;
   const savingsGoal = profile?.savings_goal || 0;
-  const disposable = monthlyIncome - savingsGoal;
+  const monthsActive = profile ? getMonthsActive(profile, filteredExpenses, start) : 1;
+  const disposable = (monthlyIncome - savingsGoal) * Math.max(1, monthsActive);
+
+  // We find exactly what the user net-spent before the 1st of this month
+  const pastExpenses = filteredExpenses.filter(e => isBefore(parseISO(e.date), start));
+  const pastNet = pastExpenses.reduce((acc, e) => acc + (e.type === 'ingreso' ? -Number(e.amount) : Number(e.amount)), 0);
+
+  // The starting debt/surplus for this month
+  let cumulativeSpent = pastNet;
 
   for (const day of days) {
     const dayExpenses = filteredExpenses.filter(e => isSameDay(parseISO(e.date), day));
@@ -70,18 +77,26 @@ export default function CalendarGrid({
     const spending = getDaySpending(day);
     const isPast = isBefore(day, today) && !isTodayDay;
 
-    if (isSelected) return 'cal-cell cal-cell--selected';
-    if (isTodayDay) return 'cal-cell cal-cell--today';
+    let baseClass = 'cal-cell';
 
-    if (isPast && spending > 0 && profile) {
+    // Incomes visually highlight the day green
+    if (spending < 0) {
+      baseClass = 'cal-cell cal-cell--income';
+    } 
+    // Past days with actual expenses are colored based on budget
+    else if (isPast && spending > 0 && profile) {
       const budget = calculateBudget(profile, expenses, day, selectedAccountId);
       if (spending > budget.dailyBudget) {
-        return 'cal-cell cal-cell--over';
+        baseClass = 'cal-cell cal-cell--over';
+      } else {
+        baseClass = 'cal-cell cal-cell--under';
       }
-      return 'cal-cell cal-cell--under';
     }
 
-    return 'cal-cell';
+    if (isSelected) return `${baseClass} cal-cell--selected`;
+    if (isTodayDay) return `${baseClass} cal-cell--today`;
+
+    return baseClass;
   };
 
   const formatBalance = (value: number): string => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useBudget } from '@/hooks/useBudget';
+import { getMonthsActive } from '@/lib/calculations';
 import { useState } from 'react';
 import CalendarHeader from './CalendarHeader';
 import AccountBar from './AccountBar';
@@ -33,8 +34,13 @@ export default function Dashboard() {
   const filteredExpenses = selectedAccountId
     ? expenses.filter(e => e.account_id === selectedAccountId)
     : expenses;
-  const totalSpent = filteredExpenses.reduce((acc, e) => acc + Number(e.amount), 0);
-  const balance = (profile?.monthly_income || 0) - (profile?.savings_goal || 0) - totalSpent;
+    
+  const monthsActive = profile ? getMonthsActive(profile, filteredExpenses, selectedDate || new Date()) : 1;
+  const lifetimeIncome = (profile?.monthly_income || 0) * Math.max(1, monthsActive);
+  const lifetimeSavings = (profile?.savings_goal || 0) * Math.max(1, monthsActive);
+  
+  const totalSpent = filteredExpenses.reduce((acc, e) => acc + (e.type === 'ingreso' ? -Number(e.amount) : Number(e.amount)), 0);
+  const balance = lifetimeIncome - lifetimeSavings - totalSpent;
 
   return (
     <div className="app-container">
