@@ -16,9 +16,11 @@ export default function TransactionRow({ expense, category, onDelete }: Transact
   return (
     <div className="transaction-row">
       <div
-        className="transaction-color-bar"
+        className="transaction-avatar"
         style={{ backgroundColor: category?.color || (isIncome ? 'var(--positive)' : '#6b7280') }}
-      />
+      >
+        {category ? category.name.charAt(0).toUpperCase() : (isIncome ? 'I' : 'G')}
+      </div>
       <div className="transaction-info">
         <span className="transaction-name">{expense.description}</span>
         <span className="transaction-category">

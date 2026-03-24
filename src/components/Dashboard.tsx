@@ -10,6 +10,9 @@ import CalendarGrid from './CalendarGrid';
 import DailyTransactions from './DailyTransactions';
 import AddExpenseModal from './AddExpenseModal';
 import SettingsModal from './SettingsModal';
+import MonthlySummary from './MonthlySummary';
+import StatisticsView from './StatisticsView';
+import BottomNav from './BottomNav';
 
 export default function Dashboard() {
   const {
@@ -21,6 +24,7 @@ export default function Dashboard() {
 
   const [showSettings, setShowSettings] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [activeTab, setActiveTab] = useState<'calendar' | 'stats'>('calendar');
 
   if (loading) {
     return (
@@ -43,7 +47,7 @@ export default function Dashboard() {
   const balance = lifetimeIncome - lifetimeSavings - totalSpent;
 
   return (
-    <div className="app-container">
+    <div className="app-container" style={{ paddingBottom: '90px' }}>
       <CalendarHeader
         currentMonth={currentMonth}
         onNavigate={navigateMonth}
@@ -57,24 +61,47 @@ export default function Dashboard() {
         balance={balance}
       />
 
-      {budget && <MarginIndicator budget={budget} />}
+      {activeTab === 'calendar' ? (
+        <>
+          <MonthlySummary 
+            expenses={expenses} 
+            currentMonth={currentMonth} 
+            selectedAccountId={selectedAccountId} 
+          />
+          
+          {budget && <MarginIndicator budget={budget} />}
 
-      <CalendarGrid
-        profile={profile}
-        expenses={expenses}
-        currentMonth={currentMonth}
-        selectedDate={selectedDate}
-        selectedAccountId={selectedAccountId}
-        onSelectDate={setSelectedDate}
-      />
+          <CalendarGrid
+            profile={profile}
+            expenses={expenses}
+            currentMonth={currentMonth}
+            selectedDate={selectedDate}
+            selectedAccountId={selectedAccountId}
+            onSelectDate={setSelectedDate}
+          />
 
-      <DailyTransactions
-        selectedDate={selectedDate}
-        expenses={expenses}
-        categories={categories}
-        selectedAccountId={selectedAccountId}
-        onAddExpense={() => setShowAddExpense(true)}
-        onDeleteExpense={deleteExpense}
+          <DailyTransactions
+            selectedDate={selectedDate}
+            expenses={expenses}
+            categories={categories}
+            selectedAccountId={selectedAccountId}
+            onAddExpense={() => setShowAddExpense(true)}
+            onDeleteExpense={deleteExpense}
+          />
+        </>
+      ) : (
+        <StatisticsView 
+          expenses={expenses} 
+          categories={categories} 
+          currentMonth={currentMonth} 
+          selectedAccountId={selectedAccountId} 
+        />
+      )}
+
+      <BottomNav 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        onOpenSettings={() => setShowSettings(true)} 
       />
 
       {/* Modals */}
