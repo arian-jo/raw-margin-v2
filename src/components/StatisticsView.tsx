@@ -71,7 +71,7 @@ export default function StatisticsView({ expenses, categories, currentMonth, sel
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(val: number) => formatMoney(val)}
+                  formatter={(val: any) => formatMoney(Number(val))}
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                 />
               </PieChart>
