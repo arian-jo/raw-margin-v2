@@ -2,6 +2,7 @@
 
 import { Expense, Category } from '@/types/database';
 import { Trash2, Edit3 } from 'lucide-react';
+import { getIconComponent } from '@/lib/icons';
 
 interface TransactionRowProps {
   expense: Expense;
@@ -13,6 +14,7 @@ interface TransactionRowProps {
 export default function TransactionRow({ expense, category, onDelete, onEdit }: TransactionRowProps) {
   const isIncome = expense.type === 'ingreso';
   const formattedAmount = `$${Number(expense.amount).toLocaleString('es-CL', { minimumFractionDigits: 2 })}`;
+  const IconComp = category ? getIconComponent(category.icon) : null;
 
   return (
     <div className="transaction-row">
@@ -20,7 +22,7 @@ export default function TransactionRow({ expense, category, onDelete, onEdit }: 
         className="transaction-avatar"
         style={{ backgroundColor: category?.color || (isIncome ? 'var(--positive)' : '#6b7280') }}
       >
-        {category ? category.name.charAt(0).toUpperCase() : (isIncome ? 'I' : 'G')}
+        {IconComp ? <IconComp size={16} color="#fff" strokeWidth={2} /> : (isIncome ? 'I' : 'G')}
       </div>
       <div className="transaction-info">
         <span className="transaction-name">{expense.description}</span>

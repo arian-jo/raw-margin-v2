@@ -10,6 +10,7 @@ export type Category = {
   user_id: string;
   name: string;
   color: string;
+  icon?: string | null;
   created_at: string;
 };
 

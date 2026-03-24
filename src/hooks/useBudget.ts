@@ -201,11 +201,11 @@ export function useBudget() {
     }
   };
 
-  const addCategory = async (name: string, color: string) => {
+  const addCategory = async (name: string, color: string, icon: string = 'Circle') => {
     if (!user) return;
     const { data, error } = await supabase
       .from('categories')
-      .insert([{ user_id: user.id, name, color }])
+      .insert([{ user_id: user.id, name, color, icon }])
       .select()
       .single();
     if (error) throw error;

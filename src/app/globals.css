@@ -1361,6 +1361,149 @@
     border-radius: 4px;
     transition: width 0.5s ease-out;
   }
+
+  /* --- Category Grid (Large Icons) --- */
+  .category-grid-large {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 8px;
+    margin-top: 12px;
+    padding-bottom: 8px;
+  }
+
+  .expense-cat-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .expense-cat-btn:active {
+    transform: scale(0.92);
+  }
+
+  .expense-cat-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .expense-cat-btn.selected .expense-cat-circle {
+    box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--primary);
+  }
+
+  .expense-cat-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  /* --- Category Manager Modal --- */
+  .color-picker-scroll {
+    display: flex;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 12px 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .color-picker-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .color-dot {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .color-dot.selected {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px var(--bg-main), 0 0 0 4px var(--text-primary);
+  }
+
+  .selected-icon-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px;
+    background: var(--bg-main);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .selected-icon-preview:hover {
+    background: var(--border-light);
+  }
+
+  .selected-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  .selected-icon-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .icon-grid-catalog {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px 12px;
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 60vh;
+  }
+
+  .icon-catalog-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+  }
+
+  .icon-catalog-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .catalog-modal {
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 /* --- Animations (must be outside @layer) --- */

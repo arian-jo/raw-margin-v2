@@ -19,7 +19,7 @@ export default function Dashboard() {
     profile, expenses, categories, accounts, budget, loading,
     currentMonth, selectedDate, selectedAccountId,
     setSelectedDate, setSelectedAccountId, navigateMonth,
-    addExpense, deleteExpense, updateExpense, updateProfile
+    addExpense, deleteExpense, updateExpense, updateProfile, addCategory
   } = useBudget();
 
   const [showSettings, setShowSettings] = useState(false);
@@ -124,6 +124,7 @@ export default function Dashboard() {
           }}
           onAdd={addExpense}
           onEdit={updateExpense as any}
+          onAddCategory={addCategory}
           expenseToEdit={expenseToEdit}
           categories={categories}
           accounts={accounts}

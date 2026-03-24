@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { X, DollarSign, Edit3, Calendar as CalendarIcon, Save, TrendingDown, TrendingUp } from 'lucide-react';
+import { X, DollarSign, Edit3, Calendar as CalendarIcon, Save, TrendingDown, TrendingUp, Plus } from 'lucide-react';
 import { Expense, Category, Account } from '@/types/database';
+import { getIconComponent } from '@/lib/icons';
+import CategoryManagerModal from './CategoryManagerModal';
 
 interface AddTransactionModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (expense: Omit<Expense, 'id' | 'user_id' | 'created_at'>) => Promise<void>;
+  onAddCategory: (name: string, color: string, icon: string) => Promise<void>;
   categories: Category[];
   accounts: Account[];
   defaultDate?: Date;
@@ -18,7 +21,7 @@ interface AddTransactionModalProps {
 }
 
 export default function AddExpenseModal({
-  isOpen, onClose, onAdd, categories, accounts, defaultDate, defaultAccountId, expenseToEdit, onEdit
+  isOpen, onClose, onAdd, onAddCategory, categories, accounts, defaultDate, defaultAccountId, expenseToEdit, onEdit
 }: AddTransactionModalProps) {
   const [description, setDescription] = useState(expenseToEdit?.description || '');
   const [amount, setAmount] = useState(expenseToEdit ? String(Math.abs(Number(expenseToEdit.amount))) : '');
@@ -29,6 +32,7 @@ export default function AddExpenseModal({
   const [accountId, setAccountId] = useState<string | null>(expenseToEdit?.account_id ?? defaultAccountId ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
@@ -170,26 +174,46 @@ export default function AddExpenseModal({
             />
           </div>
 
-          {/* Category selector */}
-          <div className="form-group">
-            <label className="form-label">Categoría</label>
-            <div className="category-grid">
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  className={`category-chip ${categoryId === cat.id ? 'category-chip--selected' : ''}`}
-                  style={{
-                    '--chip-color': cat.color,
-                    borderColor: categoryId === cat.id ? cat.color : 'transparent',
-                    backgroundColor: categoryId === cat.id ? `${cat.color}15` : undefined,
-                  } as React.CSSProperties}
-                  onClick={() => setCategoryId(categoryId === cat.id ? null : cat.id)}
-                >
-                  <span className="category-chip-dot" style={{ backgroundColor: cat.color }} />
-                  {cat.name}
-                </button>
-              ))}
+          {/* Modal Triggers Component Map -- Large Grid Selector */}
+          <div className="form-group" style={{ marginTop: '16px' }}>
+            <label className="form-label" style={{ marginBottom: '4px' }}>Categoría</label>
+            <div className="category-grid-large">
+              {categories.map(cat => {
+                const IconComp = getIconComponent(cat.icon);
+                const isSelected = categoryId === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    className={`expense-cat-btn ${isSelected ? 'selected' : ''}`}
+                    onClick={() => setCategoryId(isSelected ? null : cat.id)}
+                  >
+                    <div 
+                      className="expense-cat-circle" 
+                      style={{ 
+                        backgroundColor: isSelected ? cat.color : `${cat.color}25`,
+                        borderColor: isSelected ? 'transparent' : cat.color,
+                        border: isSelected ? 'none' : `1px solid ${cat.color}40`
+                      }}
+                    >
+                      <IconComp size={24} color={isSelected ? '#fff' : cat.color} strokeWidth={isSelected ? 2 : 1.5} />
+                    </div>
+                    <span className="expense-cat-name" style={{ color: isSelected ? 'var(--text-primary)' : '' }}>
+                      {cat.name}
+                    </span>
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                className="expense-cat-btn"
+                onClick={() => setShowCategoryManager(true)}
+              >
+                <div className="expense-cat-circle" style={{ backgroundColor: 'var(--bg-main)', border: '1px dashed var(--border-light)' }}>
+                  <Plus size={24} color="var(--text-secondary)" strokeWidth={1.5} />
+                </div>
+                <span className="expense-cat-name text-muted">Añadir</span>
+              </button>
             </div>
           </div>
 
@@ -237,6 +261,12 @@ export default function AddExpenseModal({
           </button>
         </form>
       </div>
+
+      <CategoryManagerModal
+        isOpen={showCategoryManager}
+        onClose={() => setShowCategoryManager(false)}
+        onAddCategory={onAddCategory}
+      />
     </div>
   );
 }

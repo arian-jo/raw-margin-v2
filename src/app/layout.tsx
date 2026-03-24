@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const viewport: Viewport = {
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -22,6 +23,15 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Raw Margin — Presupuesto Diario Dinámico",
   description: "Controla tus finanzas con un presupuesto diario ajustado en tiempo real.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Raw Margin",
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
