@@ -61,7 +61,13 @@ export default function DailyTransactions({
               key={expense.id}
               expense={expense}
               category={getCategoryForExpense(expense)}
-              onDelete={onDeleteExpense}
+              onDelete={async (id) => {
+                try {
+                  await onDeleteExpense(id);
+                } catch (err) {
+                  window.alert('Hubo un error de conexión al intentar eliminar la transacción.');
+                }
+              }}
             />
           ))
         )}

@@ -26,6 +26,7 @@ export default function AddExpenseModal({
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [accountId, setAccountId] = useState<string | null>(defaultAccountId || null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDateChange = (newDate: string) => {
     setDate(newDate);
@@ -38,7 +39,12 @@ export default function AddExpenseModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (Number(amount) <= 0) {
+      setError('El monto debe ser mayor a 0');
+      return;
+    }
     setLoading(true);
+    setError(null);
     try {
       await onAdd({
         description,
@@ -56,9 +62,11 @@ export default function AddExpenseModal({
       setType('gasto');
       setStatus('realizado');
       setCategoryId(null);
+      setCategoryId(null);
       onClose();
-    } catch (error) {
-      console.error('Error adding transaction:', error);
+    } catch (err: any) {
+      console.error('Error adding transaction:', err);
+      setError(err?.message || 'Hubo un error de red guardando la transacción.');
     } finally {
       setLoading(false);
     }
@@ -79,6 +87,12 @@ export default function AddExpenseModal({
         </div>
 
         <form onSubmit={handleSubmit} className="modal-form">
+          {error && (
+            <div style={{ color: 'var(--negative)', fontSize: '13px', textAlign: 'center', backgroundColor: 'var(--health-red-bg)', padding: '10px', borderRadius: '8px', marginBottom: '8px', fontWeight: '500' }}>
+              {error}
+            </div>
+          )}
+
           {/* Type toggle — Gasto / Ingreso */}
           <div className="type-toggle">
             <button
@@ -108,6 +122,7 @@ export default function AddExpenseModal({
               type="number"
               required
               step="any"
+              min="0.01"
               className="form-input form-input--large"
               placeholder="0.00"
               value={amount}
