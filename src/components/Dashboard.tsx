@@ -19,11 +19,12 @@ export default function Dashboard() {
     profile, expenses, categories, accounts, budget, loading,
     currentMonth, selectedDate, selectedAccountId,
     setSelectedDate, setSelectedAccountId, navigateMonth,
-    addExpense, deleteExpense, updateProfile
+    addExpense, deleteExpense, updateExpense, updateProfile
   } = useBudget();
 
   const [showSettings, setShowSettings] = useState(false);
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [expenseToEdit, setExpenseToEdit] = useState<any>(null); // Type Expense
   const [activeTab, setActiveTab] = useState<'calendar' | 'stats'>('calendar');
 
   if (loading) {
@@ -63,11 +64,13 @@ export default function Dashboard() {
 
       {activeTab === 'calendar' ? (
         <>
-          <MonthlySummary 
-            expenses={expenses} 
-            currentMonth={currentMonth} 
-            selectedAccountId={selectedAccountId} 
-          />
+          <div className="monthly-summary-wrapper">
+            <MonthlySummary 
+              expenses={expenses} 
+              currentMonth={currentMonth} 
+              selectedAccountId={selectedAccountId} 
+            />
+          </div>
           
           {budget && <MarginIndicator budget={budget} />}
 
@@ -85,7 +88,14 @@ export default function Dashboard() {
             expenses={expenses}
             categories={categories}
             selectedAccountId={selectedAccountId}
-            onAddExpense={() => setShowAddExpense(true)}
+            onAddExpense={() => {
+              setExpenseToEdit(null);
+              setShowAddExpense(true);
+            }}
+            onEditExpense={(expense) => {
+              setExpenseToEdit(expense);
+              setShowAddExpense(true);
+            }}
             onDeleteExpense={deleteExpense}
           />
         </>
@@ -108,8 +118,13 @@ export default function Dashboard() {
       {showAddExpense && (
         <AddExpenseModal
           isOpen={showAddExpense}
-          onClose={() => setShowAddExpense(false)}
+          onClose={() => {
+            setShowAddExpense(false);
+            setExpenseToEdit(null);
+          }}
           onAdd={addExpense}
+          onEdit={updateExpense as any}
+          expenseToEdit={expenseToEdit}
           categories={categories}
           accounts={accounts}
           defaultDate={selectedDate}

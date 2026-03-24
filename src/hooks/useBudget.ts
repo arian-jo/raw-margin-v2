@@ -163,7 +163,26 @@ export function useBudget() {
     setExpenses(prev => prev.filter(e => e.id !== id));
     const { error } = await supabase.from('expenses').delete().eq('id', id);
     if (error) {
-      if (user) fetchUserData(user.id, currentMonth); // Revert on failure
+      if (user) fetchUserData(user.id); // Revert on failure
+      throw error;
+    }
+  };
+
+  const updateExpense = async (id: string, updates: Partial<Expense>) => {
+    if (!user) return;
+    // Optimistic update
+    setExpenses(prev => {
+      const newExpenses = prev.map(e => e.id === id ? { ...e, ...updates } as Expense : e);
+      return newExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    });
+    
+    const { error } = await supabase
+      .from('expenses')
+      .update(updates)
+      .eq('id', id);
+      
+    if (error) {
+      if (user) fetchUserData(user.id);
       throw error;
     }
   };
@@ -177,7 +196,7 @@ export function useBudget() {
       .update(updates)
       .eq('id', user.id);
     if (error) {
-      fetchUserData(user.id, currentMonth);
+      fetchUserData(user.id);
       throw error;
     }
   };
@@ -199,7 +218,7 @@ export function useBudget() {
     setCategories(prev => prev.filter(c => c.id !== id));
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) {
-      if (user) fetchUserData(user.id, currentMonth);
+      if (user) fetchUserData(user.id);
       throw error;
     }
   };
@@ -221,7 +240,7 @@ export function useBudget() {
     setAccounts(prev => prev.filter(a => a.id !== id));
     const { error } = await supabase.from('accounts').delete().eq('id', id);
     if (error) {
-      if (user) fetchUserData(user.id, currentMonth);
+      if (user) fetchUserData(user.id);
       throw error;
     }
   };
@@ -249,6 +268,7 @@ export function useBudget() {
     // CRUD
     addExpense,
     deleteExpense,
+    updateExpense,
     updateProfile,
     addCategory,
     deleteCategory,

@@ -12,11 +12,12 @@ interface DailyTransactionsProps {
   categories: Category[];
   selectedAccountId: string | null;
   onAddExpense: () => void;
+  onEditExpense: (expense: Expense) => void;
   onDeleteExpense: (id: string) => void;
 }
 
 export default function DailyTransactions({
-  selectedDate, expenses, categories, selectedAccountId, onAddExpense, onDeleteExpense
+  selectedDate, expenses, categories, selectedAccountId, onAddExpense, onEditExpense, onDeleteExpense
 }: DailyTransactionsProps) {
   const dayExpenses = expenses
     .filter(e => isSameDay(parseISO(e.date), selectedDate))
@@ -68,6 +69,7 @@ export default function DailyTransactions({
                   window.alert('Hubo un error de conexión al intentar eliminar la transacción.');
                 }
               }}
+              onEdit={() => onEditExpense(expense)}
             />
           ))
         )}

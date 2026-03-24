@@ -1,15 +1,16 @@
 'use client';
 
 import { Expense, Category } from '@/types/database';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Edit3 } from 'lucide-react';
 
 interface TransactionRowProps {
   expense: Expense;
   category?: Category;
   onDelete: (id: string) => void;
+  onEdit?: () => void;
 }
 
-export default function TransactionRow({ expense, category, onDelete }: TransactionRowProps) {
+export default function TransactionRow({ expense, category, onDelete, onEdit }: TransactionRowProps) {
   const isIncome = expense.type === 'ingreso';
   const formattedAmount = `$${Number(expense.amount).toLocaleString('es-CL', { minimumFractionDigits: 2 })}`;
 
@@ -29,6 +30,16 @@ export default function TransactionRow({ expense, category, onDelete }: Transact
         </span>
       </div>
       <div className="transaction-actions">
+        {onEdit && (
+          <button
+            className="transaction-edit"
+            onClick={onEdit}
+            aria-label="Editar"
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+          >
+            <Edit3 size={14} />
+          </button>
+        )}
         <button
           className="transaction-delete"
           onClick={() => onDelete(expense.id)}

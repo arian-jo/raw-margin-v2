@@ -13,18 +13,20 @@ interface AddTransactionModalProps {
   accounts: Account[];
   defaultDate?: Date;
   defaultAccountId?: string | null;
+  expenseToEdit?: Expense | null;
+  onEdit?: (id: string, updates: Partial<Expense>) => Promise<void>;
 }
 
 export default function AddExpenseModal({
-  isOpen, onClose, onAdd, categories, accounts, defaultDate, defaultAccountId
+  isOpen, onClose, onAdd, categories, accounts, defaultDate, defaultAccountId, expenseToEdit, onEdit
 }: AddTransactionModalProps) {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState(format(defaultDate || new Date(), 'yyyy-MM-dd'));
-  const [type, setType] = useState<'gasto' | 'ingreso'>('gasto');
-  const [status, setStatus] = useState<'realizado' | 'programado'>('realizado');
-  const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [accountId, setAccountId] = useState<string | null>(defaultAccountId || null);
+  const [description, setDescription] = useState(expenseToEdit?.description || '');
+  const [amount, setAmount] = useState(expenseToEdit ? String(Math.abs(Number(expenseToEdit.amount))) : '');
+  const [date, setDate] = useState(expenseToEdit ? expenseToEdit.date : format(defaultDate || new Date(), 'yyyy-MM-dd'));
+  const [type, setType] = useState<'gasto' | 'ingreso'>(expenseToEdit?.type || 'gasto');
+  const [status, setStatus] = useState<'realizado' | 'programado'>(expenseToEdit?.status || 'realizado');
+  const [categoryId, setCategoryId] = useState<string | null>(expenseToEdit?.category_id || null);
+  const [accountId, setAccountId] = useState<string | null>(expenseToEdit?.account_id ?? defaultAccountId ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,15 +48,27 @@ export default function AddExpenseModal({
     setLoading(true);
     setError(null);
     try {
-      await onAdd({
-        description,
-        amount: Number(amount),
-        date,
-        type,
-        status,
-        category_id: categoryId,
-        account_id: accountId,
-      });
+      if (expenseToEdit && onEdit) {
+        await onEdit(expenseToEdit.id, {
+          description,
+          amount: Number(amount),
+          date,
+          type,
+          status,
+          category_id: categoryId,
+          account_id: accountId,
+        });
+      } else {
+        await onAdd({
+          description,
+          amount: Number(amount),
+          date,
+          type,
+          status,
+          category_id: categoryId,
+          account_id: accountId,
+        });
+      }
       // Reset
       setDescription('');
       setAmount('');
@@ -80,7 +94,7 @@ export default function AddExpenseModal({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{isExpense ? 'Nuevo Gasto' : 'Nuevo Ingreso'}</h2>
+          <h2>{expenseToEdit ? (isExpense ? 'Editar Gasto' : 'Editar Ingreso') : (isExpense ? 'Nuevo Gasto' : 'Nuevo Ingreso')}</h2>
           <button onClick={onClose} className="modal-close-btn">
             <X size={20} />
           </button>

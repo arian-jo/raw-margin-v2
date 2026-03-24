@@ -1186,12 +1186,18 @@
   }
 
   /* --- Monthly Summary Bar --- */
+  .monthly-summary-wrapper {
+    background: var(--surface);
+    padding: 16px;
+    padding-bottom: 0;
+    margin-bottom: -16px; /* Offset the padding of margin-indicator */
+  }
+
   .monthly-summary-bar {
     display: flex;
     align-items: center;
     background: var(--surface);
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border-light);
+    padding: 0 0 12px 0;
   }
 
   .summary-col {
