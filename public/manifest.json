@@ -1,6 +1,6 @@
 {
-  "name": "Presupuesto Diario Dinámico",
-  "short_name": "Presupuesto",
+  "name": "Raw Margin",
+  "short_name": "Raw Margin",
   "description": "Tu presupuesto diario inteligente",
   "start_url": "/",
   "display": "standalone",
