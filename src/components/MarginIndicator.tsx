@@ -10,7 +10,7 @@ interface MarginIndicatorProps {
 
 const METRIC_INFO = {
   rawMargin: {
-    title: 'Raw Margin',
+    title: 'Margen Neto',
     desc: 'Diferencia acumulada entre tu presupuesto diario y lo que realmente gastaste este mes. Positivo = vas ahorrando más de lo planeado. Negativo = gastaste más de lo que tenías asignado.',
     emoji: '📊',
   },
@@ -77,14 +77,14 @@ export default function MarginIndicator({ budget }: MarginIndicatorProps) {
 
       {/* Stats row — 4 clickable cards */}
       <div className="margin-stats">
-        {/* Raw Margin */}
+        {/* Margen Neto */}
         <button className="margin-stat" onClick={() => openInfo('rawMargin')}>
           <div className="margin-stat-icon"
             style={{ background: budget.rawMarginAccumulated >= 0 ? 'var(--health-green-bg)' : 'var(--health-red-bg)' }}>
             <TrendingUp size={13} style={{ color: budget.rawMarginAccumulated >= 0 ? 'var(--health-green)' : 'var(--health-red)' }} />
           </div>
           <div className="margin-stat-content">
-            <span className="margin-stat-label">Raw Margin</span>
+            <span className="margin-stat-label">Margen Neto</span>
             <span className={`margin-stat-value ${budget.rawMarginAccumulated >= 0 ? 'text-positive' : 'text-negative'}`}>
               {fmt(budget.rawMarginAccumulated)}
             </span>

@@ -43,7 +43,7 @@ export default function SplashScreen() {
         >
           <Image
             src="/icon.png"
-            alt="Raw Margin Logo"
+            alt="Calendario Financiero Logo"
             fill
             className="object-cover"
             priority
@@ -58,7 +58,7 @@ export default function SplashScreen() {
           }}
         >
           <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            Raw <span className="text-blue-600">Margin</span>
+            Calendario <span className="text-blue-600">Financiero</span>
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 font-medium tracking-wide text-xs uppercase mt-2">
             Intelligent Daily Budget

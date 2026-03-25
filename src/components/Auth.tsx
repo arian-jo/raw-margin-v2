@@ -86,11 +86,11 @@ export default function Auth() {
             background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.1) 100%)',
             boxShadow: 'inset 1px 1px 0px rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4)',
           }}>
-            <img src="/icon.png" alt="Raw Margin" className="w-14 h-14 object-contain brightness-0 invert opacity-90" />
+            <img src="/icon.png" alt="Calendario Financiero" className="w-14 h-14 object-contain brightness-0 invert opacity-90" />
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-full animate-[glass-shine_4s_infinite]" />
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">
-            Raw Margin
+            Calendario Financiero
           </h2>
           <p className="text-sm font-medium text-slate-400 uppercase tracking-widest">
             Intelligent Daily Budget
