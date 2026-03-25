@@ -82,11 +82,13 @@ export default function Auth() {
         boxShadow: 'inset 1px 1px 0px rgba(255, 255, 255, 0.1), 0 20px 60px rgba(0, 0, 0, 0.5)',
       }}>
         <div className="text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl shadow-xl mb-6 relative overflow-hidden" style={{
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(37, 99, 235, 0.1) 100%)',
-            boxShadow: 'inset 1px 1px 0px rgba(255, 255, 255, 0.2), 0 8px 32px rgba(0, 0, 0, 0.4)',
+          <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[2rem] shadow-xl mb-6 relative overflow-hidden" style={{
+            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            boxShadow: 'inset 1px 1px 0px rgba(255, 255, 255, 0.2), 0 12px 40px rgba(0, 0, 0, 0.4)',
           }}>
-            <img src="/icon.png" alt="Calendario Financiero" className="w-14 h-14 object-contain brightness-0 invert opacity-90" />
+            <img src="/icon.png" alt="Calendario Financiero" className="w-full h-full object-cover scale-110" />
             <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent transform -skew-x-12 translate-x-full animate-[glass-shine_4s_infinite]" />
           </div>
           <h2 className="text-3xl font-extrabold tracking-tight text-white mb-2">
